@@ -1,2 +1,1 @@
-# photomnemonic
-Simple AWS Lambda service for grabbing web screenshots
+AWS Lambda function for taking screenshots of the web
