@@ -5,7 +5,7 @@ function sleep(miliseconds = 100) {
   return new Promise(resolve => setTimeout(() => resolve(), miliseconds));
 }
 
-async function screenshot(url) {
+async function screenshot(url, fullscreen) {
   const LOAD_TIMEOUT = process.env.PAGE_LOAD_TIMEOUT || 1000 * 60;
 
   let result;
@@ -17,12 +17,12 @@ async function screenshot(url) {
       await loading(startTime);
     }
   };
-  await launchChrome({ flags: [`--window-size=1024x768`, "--hide-scrollbars"] });
+  await launchChrome({ flags: [`--window-size=1280x720`, "--hide-scrollbars"] });
 
   const [tab] = await Cdp.List();
   const client = await Cdp({ host: "127.0.0.1", target: tab });
 
-  const { Network, Page, Runtime, Emulation } = client;
+  const { Network, Page, Runtime, Emulation, DOM } = client;
 
   Page.loadEventFired(() => {
     loaded = true;
@@ -43,28 +43,33 @@ async function screenshot(url) {
     await Page.loadEventFired();
     await loading();
 
-    const {
-      result: {
-        value: { height }
-      }
-    } = await Runtime.evaluate({
-      expression: `(
-        () => ({ height: document.body.scrollHeight })
-      )();
-      `,
-      returnByValue: true
-    });
+    let height = 720;
+
+    if (fullscreen) {
+      const {
+        result: {
+          value: { height }
+        }
+      } = await Runtime.evaluate({
+        expression: `(
+          () => ({ height: document.body.scrollHeight })
+        )();
+        `,
+        returnByValue: true
+      });
+    }
 
     await Emulation.setDeviceMetricsOverride({
       mobile: false,
       deviceScaleFactor: 0,
       scale: 1,
       width: 1280,
-      height
+      height: height
     });
 
-    const screenshot = await Page.captureScreenshot({ format: "png" });
+    await Emulation.setVisibleSize({ width: 1280, height });
 
+    const screenshot = await Page.captureScreenshot({ format: "png" });
     result = screenshot.data;
   } catch (error) {
     console.error(error);
@@ -77,12 +82,12 @@ async function screenshot(url) {
 
 module.exports.handler = async function handler(event, context, callback) {
   const queryStringParameters = event.queryStringParameters || {};
-  const { url = "https://google.com" } = queryStringParameters;
+  const { url = "https://google.com", fullscreen = "false" } = queryStringParameters;
 
   let data;
 
   try {
-    data = await screenshot(url);
+    data = await screenshot(url, fullscreen === "true");
   } catch (error) {
     console.error("Error capturing screenshot for", url, error);
     return callback(error);

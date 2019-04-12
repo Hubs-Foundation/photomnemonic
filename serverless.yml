@@ -1,10 +1,19 @@
-service: photomnemon
+service: photomnemonic
 
 provider:
   name: aws
   runtime: nodejs8.10
-  stage: dev
-  region: us-east-1
+  stackName: photomnemonic-dev
+  stage: ${opt:stage, 'dev'}
+  region: ${file(config.json):photomnemonic-region}
+  timeout: 30
+  role: ${file(config.json):photomnemonic-iam-role}
+  deploymentBucket:
+    name: ${file(config.json):photomnemonic-bucket-id}
+  vpc:
+    securityGroupIds:
+      - ${file(config.json):photomnemonic-security-group}
+    subnetIds: ${file(config.json):photomnemonic-subnet-ids}
 
 functions:
   app:

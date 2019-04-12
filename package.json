@@ -1,5 +1,5 @@
 {
-  "name": "photomnemon",
+  "name": "photomnemonic",
   "version": "0.0.1",
   "description": "Take visual snapshots of the web at a point in time",
   "main": "index.js",
