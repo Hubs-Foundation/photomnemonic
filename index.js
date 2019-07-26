@@ -6,13 +6,11 @@ function sleep(miliseconds = 100) {
 }
 
 async function screenshot(url, fullscreen) {
-  const LOAD_TIMEOUT = process.env.PAGE_LOAD_TIMEOUT || 1000 * 60;
-
   let result;
   let loaded = false;
 
   const loading = async (startTime = Date.now()) => {
-    if (!loaded && Date.now() - startTime < LOAD_TIMEOUT) {
+    if (!loaded && Date.now() - startTime < 12 * 1000) {
       await sleep(100);
       await loading(startTime);
     }
@@ -23,10 +21,6 @@ async function screenshot(url, fullscreen) {
   const client = await Cdp({ host: "127.0.0.1", target: tab });
 
   const { Network, Page, Runtime, Emulation, DOM } = client;
-
-  Page.loadEventFired(() => {
-    loaded = true;
-  });
 
   try {
     await Promise.all([Network.enable(), Page.enable()]);
@@ -39,8 +33,8 @@ async function screenshot(url, fullscreen) {
       height: 0
     });
 
+    await Page.loadEventFired(() => { loaded = true; });
     await Page.navigate({ url });
-    await Page.loadEventFired();
     await loading();
 
     let height = 720;

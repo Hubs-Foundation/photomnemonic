@@ -2,7 +2,7 @@
 
 if [[ -z "$1" ]]; then
   echo -e "
-Usage: deploy.sh COMMAND [environment]
+Usage: run-serverless.sh COMMAND [environment]
 
 Runs serverless with COMMAND to the given environment, assuming HUBS_OPS_PATH has the repo managing the requisite terraform resources.
 

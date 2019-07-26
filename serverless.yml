@@ -3,6 +3,8 @@ service: photomnemonic
 provider:
   name: aws
   runtime: nodejs8.10
+  region: us-west-1
+  stage: public
   stackName: photomnemonic-public
   timeout: 30
   usagePlan:
