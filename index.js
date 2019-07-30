@@ -85,7 +85,7 @@ async function screenshot(url, fullscreen) {
     });
 
     const metaResult = await Runtime.evaluate({
-      expression: `window._photomnemonicGetMeta ? JSON.stringify(window._photomnemonicGetMeta()) : null`,
+      expression: `window._photomnemonicGetMeta ? window._photomnemonicGetMeta() : null`,
       returnByValue: true
     });
 
@@ -127,7 +127,7 @@ module.exports.handler = async function handler(event, context, callback) {
     data = result.data;
 
     if (result.meta) {
-      headers["X-Photomnemonic-Meta"] = result.meta;
+      headers["X-Photomnemonic-Meta"] = JSON.stringify(result.meta);
     }
   } catch (error) {
     console.error("Error capturing screenshot for", url, error);
