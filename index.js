@@ -63,8 +63,6 @@ async function screenshot(url, fullscreen) {
       height: height
     });
 
-    await Emulation.setVisibleSize({ width: 1280, height });
-
     // Look for a global function _photomnemonicReady and if it exists, wait until it returns true.
     await Runtime.evaluate({
       expression: `new Promise(resolve => {
@@ -94,6 +92,11 @@ async function screenshot(url, fullscreen) {
     if (metaResult.result.value) {
       meta = metaResult.result.value;
     }
+
+    await Emulation.setVisibleSize({
+      width: meta && meta.width ? meta.width : 1280,
+      height: meta && meta.height ? meta.height : height
+    });
 
     const screenshot = await Page.captureScreenshot({ format: "png" });
     data = screenshot.data;
