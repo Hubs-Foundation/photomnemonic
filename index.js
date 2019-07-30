@@ -6,7 +6,7 @@ function sleep(miliseconds = 100) {
 }
 
 async function screenshot(url, fullscreen) {
-  let result;
+  let data, meta;
   let loaded = false;
 
   const loading = async (startTime = Date.now()) => {
@@ -15,12 +15,14 @@ async function screenshot(url, fullscreen) {
       await loading(startTime);
     }
   };
-  await launchChrome({ flags: [`--window-size=1280x720`, "--hide-scrollbars"] });
+  await launchChrome({
+    flags: [`--window-size=1280x720`, "--hide-scrollbars"]
+  });
 
   const [tab] = await Cdp.List();
   const client = await Cdp({ host: "127.0.0.1", target: tab });
 
-  const { Network, Page, Runtime, Emulation, DOM } = client;
+  const { Network, Page, Runtime, Emulation } = client;
 
   try {
     await Promise.all([Network.enable(), Page.enable()]);
@@ -33,24 +35,24 @@ async function screenshot(url, fullscreen) {
       height: 0
     });
 
-    await Page.loadEventFired(() => { loaded = true; });
+    await Page.loadEventFired(() => {
+      loaded = true;
+    });
     await Page.navigate({ url });
     await loading();
 
     let height = 720;
 
     if (fullscreen) {
-      const {
-        result: {
-          value: { height }
-        }
-      } = await Runtime.evaluate({
+      const result = await Runtime.evaluate({
         expression: `(
           () => ({ height: document.body.scrollHeight })
         )();
         `,
         returnByValue: true
       });
+
+      height = result.result.value.height;
     }
 
     await Emulation.setDeviceMetricsOverride({
@@ -63,25 +65,67 @@ async function screenshot(url, fullscreen) {
 
     await Emulation.setVisibleSize({ width: 1280, height });
 
+    // Look for a global function _photomnemonicReady and if it exists, wait until it returns true.
+    await Runtime.evaluate({
+      expression: `new Promise(resolve => {
+        if (window._photomnemonicReady) {
+          if (window._photomnemonicReady()) {
+            resolve();
+          } else {
+            const interval = setInterval(() => {
+              if (window._photomnemonicReady()) {
+                clearInterval(interval);
+                resolve();
+              }
+            }, 250)
+          }
+        } else {
+          resolve();
+        }
+      })`,
+      awaitPromise: true
+    });
+
+    const metaResult = await Runtime.evaluate({
+      expression: `window._photomnemonicGetMeta ? JSON.stringify(window._photomnemonicGetMeta()) : null`,
+      returnByValue: true
+    });
+
+    if (metaResult.result.value) {
+      meta = metaResult.result.value;
+    }
+
     const screenshot = await Page.captureScreenshot({ format: "png" });
-    result = screenshot.data;
+    data = screenshot.data;
   } catch (error) {
     console.error(error);
   }
 
   await client.close();
 
-  return result;
+  return { data, meta };
 }
 
 module.exports.handler = async function handler(event, context, callback) {
   const queryStringParameters = event.queryStringParameters || {};
-  const { url = "https://google.com", fullscreen = "false" } = queryStringParameters;
+  const {
+    url = "https://google.com",
+    fullscreen = "false"
+  } = queryStringParameters;
 
   let data;
 
+  const headers = {
+    "Content-Type": "image/png"
+  };
+
   try {
-    data = await screenshot(url, fullscreen === "true");
+    const result = await screenshot(url, fullscreen === "true");
+    data = result.data;
+
+    if (result.meta) {
+      headers["X-Photomnemonic-Meta"] = result.meta;
+    }
   } catch (error) {
     console.error("Error capturing screenshot for", url, error);
     return callback(error);
@@ -91,8 +135,6 @@ module.exports.handler = async function handler(event, context, callback) {
     statusCode: 200,
     body: data,
     isBase64Encoded: true,
-    headers: {
-      "Content-Type": "image/png"
-    }
+    headers
   });
 };
