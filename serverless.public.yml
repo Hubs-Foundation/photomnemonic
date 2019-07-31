@@ -16,12 +16,16 @@ provider:
       burstLimit: 10
 
 functions:
-  app:
+  screenshot:
     handler: index.handler
     events:
       - http:
           method: get
-          path: screenshot
+          path: "screenshot/{url}"
+          request:
+            parameters:
+              paths:
+                url: true
           contentHandling: CONVERT_TO_BINARY
 
 plugins:

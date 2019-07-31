@@ -111,10 +111,18 @@ async function screenshot(url, fullscreen) {
 
 module.exports.handler = async function handler(event, context, callback) {
   const queryStringParameters = event.queryStringParameters || {};
-  const {
-    url = "https://google.com",
-    fullscreen = "false"
-  } = queryStringParameters;
+  const { fullscreen = "false" } = queryStringParameters;
+
+  const pathParameters = event.pathParameters || {};
+
+  let url;
+
+  if (queryStringParameters.url) {
+    url = queryStringParameters.url;
+  } else {
+    const base64url = pathParameters.url;
+    url = new Buffer(base64url, "base64").toString();
+  }
 
   let data;
 
