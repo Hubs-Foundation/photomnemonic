@@ -1,8 +1,19 @@
 const launchChrome = require("@serverless-chrome/lambda");
 const Cdp = require("chrome-remote-interface");
+const request = require("request");
+const sharp = require("sharp");
 
 function sleep(miliseconds = 100) {
   return new Promise(resolve => setTimeout(() => resolve(), miliseconds));
+}
+
+// Returns true if the given URL is permitted to be crawled (based upon the host filter)
+function isCrawlable(url, hostFilter) {
+  if (!hostFilter) return true;
+
+  // host filter is space separated list of hosts
+  const hosts = hostFilter.split(" ");
+  return hosts.includes(new URL(url).host);
 }
 
 async function screenshot(url, fullscreen) {
@@ -109,19 +120,18 @@ async function screenshot(url, fullscreen) {
   return { data, meta };
 }
 
-module.exports.handler = async function handler(event, context, callback) {
+module.exports.screenshot = async function handler(event, context, callback) {
   const queryStringParameters = event.queryStringParameters || {};
   const { fullscreen = "false" } = queryStringParameters;
 
-  const pathParameters = event.pathParameters || {};
+  const base64url = event.pathParameters.url;
+  const url = new Buffer(base64url, "base64").toString();
 
-  let url;
-
-  if (queryStringParameters.url) {
-    url = queryStringParameters.url;
-  } else {
-    const base64url = pathParameters.url;
-    url = new Buffer(base64url, "base64").toString();
+  if (!isCrawlable(url, process.env.screenshotHostFilter)) {
+    return callback(null, {
+      statusCode: 401,
+      body: "Invalid URL"
+    });
   }
 
   let data;
@@ -147,5 +157,68 @@ module.exports.handler = async function handler(event, context, callback) {
     body: data,
     isBase64Encoded: true,
     headers
+  });
+};
+
+module.exports.thumbnail = function handler(event, context, callback) {
+  const queryStringParameters = event.queryStringParameters || {};
+  const {
+    width,
+    height,
+    fit,
+    position,
+    gravity,
+    strategy,
+    background,
+    withoutEnlargement
+  } = queryStringParameters;
+
+  const base64url = event.pathParameters.url;
+  const url = new Buffer.from(base64url, "base64").toString();
+
+  if (!isCrawlable(url, process.env.thumbnailHostFilter)) {
+    callback(null, {
+      statusCode: 401,
+      body: "Invalid URL"
+    });
+  }
+
+  const sharpFit = fit || "cover";
+
+  let sharpPosition = sharp.position.centre;
+
+  if (position) {
+    sharpPosition = sharp.position[position];
+  } else if (gravity) {
+    sharpPosition = sharp.gravity[gravity];
+  } else if (strategy) {
+    sharpPosition = sharp.strategy[strategy];
+  }
+
+  const sharpBackground = background || { r: 0, g: 0, b: 0, alpha: 1 };
+  console.log(background);
+
+  request.get({ url, encoding: null }, (_, __, body) => {
+    sharp(body)
+      .resize({
+        width: parseInt(width),
+        height: parseInt(height),
+        fit: sharpFit,
+        position: sharpPosition,
+        background: sharpBackground,
+        withoutEnlargement: withoutEnlargement === "true"
+      })
+      .withMetadata()
+      .toBuffer({ resolveWithObject: true })
+      .then(({ data, info }) => {
+        const headers = { "Content-Type": `image/${info.format}` };
+
+        callback(null, {
+          statusCode: 200,
+          body: data.toString("base64"),
+          isBase64Encoded: true,
+          headers
+        });
+      });
   });
 };

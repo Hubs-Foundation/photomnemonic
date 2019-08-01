@@ -21,10 +21,10 @@ Resources:
               consumes:
                 - "application/json"
               parameters:
-                name: url
-                in: path
-                required: true
-                type: string
+                - name: url
+                  in: path
+                  required: true
+                  type: string
               x-amazon-apigateway-integration:
                 httpMethod: GET
                 type: aws_proxy
@@ -32,25 +32,84 @@ Resources:
                   Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ScreenshotFunction.Arn}/invocations
               requestTemplates:
                 "application/json": "{\"url\": \"$input.params('url')\"}"
+          "/thumbnail/{url}":
+            get:
+              consumes:
+                - "application/json"
+              parameters:
+                - name: url
+                  in: path
+                  required: true
+                  type: string
+                - name: width
+                  in: query
+                  required: true
+                  type: number
+                - name: height
+                  in: query
+                  required: true
+                  type: number
+                - name: fit
+                  in: query
+                  required: false
+                  type: string
+                - name: position
+                  in: query
+                  required: false
+                  type: string
+                - name: gravity
+                  in: query
+                  required: false
+                  type: string
+                - name: strategy
+                  in: query
+                  required: false
+                  type: string
+                - name: background
+                  in: query
+                  required: false
+                  type: string
+                - name: withoutEnlargement
+                  in: query
+                  required: false
+                  type: boolean
+              x-amazon-apigateway-integration:
+                httpMethod: GET
+                type: aws_proxy
+                uri:
+                  Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThumbnailFunction.Arn}/invocations
+              requestTemplates:
+                "application/json": "{\"url\": \"$input.params('url')\"}"
 
   ScreenshotFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Handler: index.handler
+      Handler: index.screenshot
       Runtime: nodejs8.10
       Events:
         Screenshot:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /screenshot
             Method: get
             ContentHandling: CONVERT_TO_BINARY
 
+  ThumbnailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: index.thumbnail
+      Runtime: nodejs10.x
+      Events:
+        Thumbnail:
+          Type: Api
+          Properties:
+            Path: /thumbnail
+            Method: get
+            ContentHandling: CONVERT_TO_BINARY
+
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   ScreenshotApi:
     Description: "API Gateway endpoint URL for Prod stage for Screenshot function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod/screenshot/"
@@ -60,3 +119,12 @@ Outputs:
   ScreenshotFunctionIamRole:
     Description: "Implicit IAM Role created for Screenshot function"
     Value: !GetAtt ScreenshotFunctionRole.Arn
+  ThumbnailApi:
+    Description: "API Gateway endpoint URL for Prod stage for Thumbnail function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod/screenshot/"
+  ThumbnailFunction:
+    Description: "Thumbnail Lambda Function ARN"
+    Value: !GetAtt ThumbnailFunction.Arn
+  ThumbnailFunctionIamRole:
+    Description: "Implicit IAM Role created for Thumbnail function"
+    Value: !GetAtt ThumbnailFunctionRole.Arn
