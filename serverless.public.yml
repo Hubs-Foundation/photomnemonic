@@ -9,7 +9,7 @@ provider:
   timeout: 30
   usagePlan:
     quota:
-      limit: 10000000
+      limit: 100000
       period: MONTH
 
 functions:
