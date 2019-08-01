@@ -210,7 +210,10 @@ module.exports.thumbnail = function handler(event, context, callback) {
       .withMetadata()
       .toBuffer({ resolveWithObject: true })
       .then(({ data, info }) => {
-        const headers = { "Content-Type": `image/${info.format}` };
+        const headers = {
+          "Content-Type": `image/${info.format}`,
+          "Cache-Control": "max-age=86400"
+        };
 
         callback(null, {
           statusCode: 200,
