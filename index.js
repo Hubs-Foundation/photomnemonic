@@ -196,7 +196,6 @@ module.exports.thumbnail = function handler(event, context, callback) {
   }
 
   const sharpBackground = background || { r: 0, g: 0, b: 0, alpha: 1 };
-  console.log(background);
 
   request.get({ url, encoding: null }, (_, __, body) => {
     sharp(body)

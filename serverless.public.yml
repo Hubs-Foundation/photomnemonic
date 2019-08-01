@@ -9,11 +9,8 @@ provider:
   timeout: 30
   usagePlan:
     quota:
-      limit: 1000
+      limit: 10000000
       period: MONTH
-    throttle:
-      rateLimit: 5
-      burstLimit: 10
 
 functions:
   screenshot:
