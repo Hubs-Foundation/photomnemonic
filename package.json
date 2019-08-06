@@ -8,7 +8,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MPL",
   "dependencies": {
     "@serverless-chrome/lambda": "^1.0.0-55",
     "chrome-launcher": "^0.10.5",
