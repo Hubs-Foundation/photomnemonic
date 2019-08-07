@@ -4,7 +4,7 @@
   "description": "Take visual snapshots of the web at a point in time",
   "main": "index.js",
   "scripts": {
-    "release": "npm run build && git commit --allow-empty -am 'update builds' && git push && np && git push"
+    "release": "np && git push"
   },
   "keywords": [],
   "author": "",
