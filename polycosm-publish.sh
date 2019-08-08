@@ -31,7 +31,7 @@ BUCKET_REGION=$(./grunt_local.sh output base $ENVIRONMENT -json | jq 'with_entri
 popd
 
 mv node_modules node_modules_tmp
-env npm_config_arch=x64 npm_config_platform=linux npm_config_target=10.16.1 npm ci
+env npm_config_arch=x64 npm_config_platform=linux npm_config_target=8.16.0 npm ci
 zip -9 -y -r ${NAME}-${VERSION}.zip *.js node_modules
 aws s3 cp --region $BUCKET_REGION --acl public-read ${NAME}-${VERSION}.zip s3://$BUCKET/lambdas/$NAME/${NAME}-${VERSION}.zip
 rm -rf node_modules
