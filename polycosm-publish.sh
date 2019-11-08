@@ -26,8 +26,8 @@ NAME=$(cat package.json | jq -r ".name")
 
 DIR=$(pwd)
 pushd $HUBS_OPS_PATH/terraform
-BUCKET=$(./grunt_local.sh output base $ENVIRONMENT -json | jq 'with_entries(.value |= .value)' | jq -r ".polycosm_assets_bucket_id")
-BUCKET_REGION=$(./grunt_local.sh output base $ENVIRONMENT -json | jq 'with_entries(.value |= .value)' | jq -r ".polycosm_assets_bucket_region")
+BUCKET=$(./grunt_local.sh output ret $ENVIRONMENT -json | jq 'with_entries(.value |= .value)' | jq -r ".polycosm_assets_bucket_id")
+BUCKET_REGION=$(./grunt_local.sh output ret $ENVIRONMENT -json | jq 'with_entries(.value |= .value)' | jq -r ".polycosm_assets_bucket_region")
 popd
 
 mv node_modules node_modules_tmp
