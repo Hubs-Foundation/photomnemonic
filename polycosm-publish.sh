@@ -21,7 +21,6 @@ fi
 ENVIRONMENT=$1
 [[ -z "$ENVIRONMENT" ]] && ENVIRONMENT=dev
 
-VERSION=$(cat package.json | jq -r ".version")
 NAME=$(cat package.json | jq -r ".name")
 
 DIR=$(pwd)
@@ -32,7 +31,7 @@ popd
 
 mv node_modules node_modules_tmp
 env npm_config_arch=x64 npm_config_platform=linux npm_config_target=8.16.0 npm ci
-zip -9 -y -r ${NAME}-${VERSION}.zip *.js node_modules
+zip -9 -y -r ${NAME}.zip *.js node_modules
 sam package --region $BUCKET_REGION --template-file template.yaml --output-template-file template-packaged.yaml --s3-bucket $BUCKET
 
 for samregion in us-east-1 us-east-2 us-west-1 us-west-2 ap-northeast-1 eu-west-1
@@ -44,4 +43,4 @@ done
 rm template-packaged.yaml
 rm -rf node_modules
 mv node_modules_tmp node_modules
-rm ${NAME}-${VERSION}.zip
+rm ${NAME}.zip
