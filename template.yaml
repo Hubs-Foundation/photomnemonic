@@ -30,6 +30,6 @@ Resources:
         Ref: PhotomnemonicRoleArn
 
 Outputs:
-  PhotomnemonicThumbnailFunctionArn:
+  PhotomnemonicScreenshotFunctionArn:
     Description: "Screenshot Lambda Function ARN"
     Value: !GetAtt ScreenshotFunction.Arn
