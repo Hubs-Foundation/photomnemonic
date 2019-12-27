@@ -27,7 +27,7 @@ Resources:
       Timeout: 30
       MemorySize: 3000
       Role:
-        Ref: SpeelycaptorRoleArn
+        Ref: PhotomnemonicRoleArn
 
 Outputs:
   PhotomnemonicThumbnailFunctionArn:
