@@ -26,14 +26,22 @@ NAME=$(cat package.json | jq -r ".name")
 
 DIR=$(pwd)
 pushd $HUBS_OPS_PATH/terraform
-BUCKET=$(./grunt_local.sh output ret $ENVIRONMENT -json | jq 'with_entries(.value |= .value)' | jq -r ".polycosm_assets_bucket_id")
-BUCKET_REGION=$(./grunt_local.sh output ret $ENVIRONMENT -json | jq 'with_entries(.value |= .value)' | jq -r ".polycosm_assets_bucket_region")
+BUCKET=$(./grunt_local.sh output ret $ENVIRONMENT -json | jq 'with_entries(.value |= .value)' | jq -r ".polycosm_sam_bucket_id")
+BUCKET_REGION=$(./grunt_local.sh output ret $ENVIRONMENT -json | jq 'with_entries(.value |= .value)' | jq -r ".polycosm_sam_bucket_region")
 popd
 
 mv node_modules node_modules_tmp
 env npm_config_arch=x64 npm_config_platform=linux npm_config_target=8.16.0 npm ci
 zip -9 -y -r ${NAME}-${VERSION}.zip *.js node_modules
-aws s3 cp --region $BUCKET_REGION --acl public-read ${NAME}-${VERSION}.zip s3://$BUCKET/lambdas/$NAME/${NAME}-${VERSION}.zip
+sam package --region $BUCKET_REGION --template-file template.yaml --output-template-file template-packaged.yaml --s3-bucket $BUCKET
+
+for samregion in us-east-1 us-east-2 us-west-1 us-west-2 ap-northeast-1 eu-west-1
+do
+  sam publish --region $samregion --template template-packaged.yaml
+  APPLICATION_ARN=$(aws --region $samregion serverlessrepo list-applications | jq -r '.Applications | . [] | .ApplicationId' | grep $NAME)
+  aws --region $samregion serverlessrepo put-application-policy --application-id "$APPLICATION_ARN" --statements Principals=assets.marketplace.amazonaws.com,Actions=Deploy
+done
+rm template-packaged.yaml
 rm -rf node_modules
 mv node_modules_tmp node_modules
 rm ${NAME}-${VERSION}.zip
