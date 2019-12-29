@@ -11,7 +11,8 @@ Metadata:
     SpdxLicenseId: MPL-2.0
     LicenseUrl: LICENSE
     ReadmeUrl: README.md
-    SemanticVersion: 0.1.0
+    SemanticVersion: 0.2.0
+    SourceCodeUrl: https://github.com/mozilla/photomnemonic
 
 Parameters:
   PhotomnemonicRoleArn:

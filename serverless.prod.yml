@@ -2,7 +2,7 @@ service: photomnemonic
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   stackName: photomnemonic-${opt:stage, 'dev'}
   stage: ${opt:stage, 'dev'}
   region: ${file(config.json):photomnemonic-region}

@@ -1,5 +1,6 @@
-const launchChrome = require("@serverless-chrome/lambda");
+const chromium = require("chrome-aws-lambda");
 const Cdp = require("chrome-remote-interface");
+const { spawn } = require("child_process");
 
 function sleep(miliseconds = 100) {
   return new Promise(resolve => setTimeout(() => resolve(), miliseconds));
@@ -15,12 +16,27 @@ async function screenshot(url, fullscreen) {
       await loading(startTime);
     }
   };
-  await launchChrome({
-    flags: [`--window-size=1280x720`, "--hide-scrollbars"]
-  });
+  const options = chromium.args.concat([
+    "--remote-debugging-port=9222",
+    "--window-size=1280x720",
+    "--hide-scrollbars"
+  ]);
 
-  const [tab] = await Cdp.List();
-  const client = await Cdp({ host: "127.0.0.1", target: tab });
+  const path = await chromium.executablePath;
+  const chrome = spawn(path, options);
+  chrome.stdout.on("data", data => console.log(data.toString()));
+  chrome.stderr.on("data", data => console.log(data.toString()));
+
+  let client;
+
+  for (let i = 0; i < 20; i++) {
+    try {
+      client = await Cdp();
+    } catch (e) {
+      console.log(e);
+      await new Promise(res => setTimeout(res, 500));
+    }
+  }
 
   const { Network, Page, Runtime, Emulation } = client;
 
@@ -104,6 +120,7 @@ async function screenshot(url, fullscreen) {
     console.error(error);
   }
 
+  chrome.kill();
   await client.close();
 
   return { data, meta };

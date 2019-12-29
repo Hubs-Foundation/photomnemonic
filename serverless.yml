@@ -2,7 +2,7 @@ service: photomnemonic
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   region: us-west-1
   stage: public
   stackName: photomnemonic-public
