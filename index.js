@@ -2,6 +2,8 @@ const chromium = require("chrome-aws-lambda");
 const Cdp = require("chrome-remote-interface");
 const { spawn } = require("child_process");
 
+const { urlAllowed } = require("./url-utils");
+
 function sleep(miliseconds = 100) {
   return new Promise(resolve => setTimeout(() => resolve(), miliseconds));
 }
@@ -32,16 +34,32 @@ async function screenshot(url, fullscreen) {
   for (let i = 0; i < 20; i++) {
     try {
       client = await Cdp();
+      if (client) {
+        break;
+      } else {
+        await sleep(500);
+      }
     } catch (e) {
       console.log(e);
-      await new Promise(res => setTimeout(res, 500));
+      await sleep(500);
     }
   }
 
-  const { Network, Page, Runtime, Emulation } = client;
+  const { Network, Page, Runtime, Emulation, Fetch } = client;
 
   try {
-    await Promise.all([Network.enable(), Page.enable()]);
+    await Promise.all([Network.enable(), Page.enable(), Fetch.enable()]);
+
+    Fetch.requestPaused(async e => {
+      if (await urlAllowed(e.request.url)) {
+        Fetch.continueRequest({ requestId: e.requestId });
+      } else {
+        Fetch.failRequest({
+          requestId: e.requestId,
+          errorReason: "AccessDenied"
+        });
+      }
+    });
 
     await Emulation.setDeviceMetricsOverride({
       mobile: false,
@@ -128,10 +146,12 @@ async function screenshot(url, fullscreen) {
 
 module.exports.handler = async function handler(event, context, callback) {
   const queryStringParameters = event.queryStringParameters || {};
-  const {
-    url = "https://google.com",
-    fullscreen = "false"
-  } = queryStringParameters;
+  const { url = "https://www.mozilla.org", fullscreen = "false" } =
+    queryStringParameters;
+
+  if (!(await urlAllowed(url))) {
+    return callback(null, { statusCode: 403, body: "forbidden" });
+  }
 
   let data;
 
