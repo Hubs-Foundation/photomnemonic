@@ -30,6 +30,6 @@ pushd $HUBS_OPS_PATH/terraform
 ./grunt_local.sh output photomnemonic $ENVIRONMENT -json | jq 'with_entries(.value |= .value)' > $DIR/config.json
 popd
 cp serverless.prod.yml serverless.yml
-sls $COMMAND --stage $ENVIRONMENT
+sls $COMMAND $3 $4 --stage $ENVIRONMENT
 cp serverless.public.yml serverless.yml
 rm config.json
