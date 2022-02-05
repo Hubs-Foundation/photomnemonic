@@ -5,7 +5,7 @@ const { spawn } = require("child_process");
 const { urlAllowed } = require("./url-utils");
 
 function sleep(miliseconds = 100) {
-  return new Promise(resolve => setTimeout(() => resolve(), miliseconds));
+  return new Promise(resolve => setTimeout(resolve, miliseconds));
 }
 
 async function screenshot(url, fullscreen) {
@@ -30,11 +30,13 @@ async function screenshot(url, fullscreen) {
   chrome.stderr.on("data", data => console.log(data.toString()));
 
   let client;
+  let clientIsAvailable = false;
 
   for (let i = 0; i < 20; i++) {
     try {
       client = await Cdp();
       if (client) {
+        clientIsAvailable = true;
         break;
       } else {
         await sleep(500);
@@ -52,12 +54,16 @@ async function screenshot(url, fullscreen) {
 
     Fetch.requestPaused(async e => {
       if (await urlAllowed(e.request.url)) {
-        Fetch.continueRequest({ requestId: e.requestId });
+        if (clientIsAvailable) {
+          Fetch.continueRequest({ requestId: e.requestId });
+        }
       } else {
-        Fetch.failRequest({
-          requestId: e.requestId,
-          errorReason: "AccessDenied"
-        });
+        if (clientIsAvailable) {
+          Fetch.failRequest({
+            requestId: e.requestId,
+            errorReason: "AccessDenied"
+          });
+        }
       }
     });
 
@@ -138,6 +144,7 @@ async function screenshot(url, fullscreen) {
     console.error(error);
   }
 
+  clientIsAvailable = false;
   chrome.kill();
   await client.close();
 
