@@ -14,7 +14,7 @@ Resources:
     Properties:
       CodeUri: .
       Handler: index.handler
-      Runtime: nodejs8.10
+      Runtime: nodejs14.x
       Events:
         Screenshot:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
