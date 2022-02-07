@@ -39,7 +39,7 @@ async function screenshot(url, fullscreen) {
         clientIsAvailable = true;
         break;
       } else {
-        await sleep(500);
+        await sleep(100);
       }
     } catch (e) {
       console.log(e);
