@@ -52,15 +52,17 @@ async function screenshot(url, fullscreen) {
   try {
     await Promise.all([Network.enable(), Page.enable(), Fetch.enable()]);
 
-    Fetch.requestPaused(async e => {
-      if (await urlAllowed(e.request.url)) {
+    // This uses the request interception API to reject or allow requests
+    // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
+    Fetch.requestPaused(async event => {
+      if (await urlAllowed(event.request.url)) {
         if (clientIsAvailable) {
-          Fetch.continueRequest({ requestId: e.requestId });
+          Fetch.continueRequest({ requestId: event.requestId });
         }
       } else {
         if (clientIsAvailable) {
           Fetch.failRequest({
-            requestId: e.requestId,
+            requestId: event.requestId,
             errorReason: "AccessDenied"
           });
         }
