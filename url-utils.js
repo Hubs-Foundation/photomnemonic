@@ -18,6 +18,7 @@ async function urlAllowed(urlStr) {
 
   let ip;
   try {
+    // Note we are only allowing IPv4 for now. IPv6 will require additional work.
     ip = (await dns.lookup(hostname, { family: 4 })).address;
   } catch (e) {
     return false;
