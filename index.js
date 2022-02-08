@@ -2,8 +2,10 @@ const chromium = require("chrome-aws-lambda");
 const Cdp = require("chrome-remote-interface");
 const { spawn } = require("child_process");
 
+const { urlAllowed } = require("./url-utils");
+
 function sleep(miliseconds = 100) {
-  return new Promise(resolve => setTimeout(() => resolve(), miliseconds));
+  return new Promise(resolve => setTimeout(resolve, miliseconds));
 }
 
 async function screenshot(url, fullscreen) {
@@ -28,20 +30,44 @@ async function screenshot(url, fullscreen) {
   chrome.stderr.on("data", data => console.log(data.toString()));
 
   let client;
+  let clientIsAvailable = false;
 
   for (let i = 0; i < 20; i++) {
     try {
       client = await Cdp();
+      if (client) {
+        clientIsAvailable = true;
+        break;
+      } else {
+        await sleep(100);
+      }
     } catch (e) {
       console.log(e);
-      await new Promise(res => setTimeout(res, 500));
+      await sleep(500);
     }
   }
 
-  const { Network, Page, Runtime, Emulation } = client;
+  const { Network, Page, Runtime, Emulation, Fetch } = client;
 
   try {
-    await Promise.all([Network.enable(), Page.enable()]);
+    await Promise.all([Network.enable(), Page.enable(), Fetch.enable()]);
+
+    // This uses the request interception API to reject or allow requests
+    // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
+    Fetch.requestPaused(async event => {
+      if (await urlAllowed(event.request.url)) {
+        if (clientIsAvailable) {
+          Fetch.continueRequest({ requestId: event.requestId });
+        }
+      } else {
+        if (clientIsAvailable) {
+          Fetch.failRequest({
+            requestId: event.requestId,
+            errorReason: "AccessDenied"
+          });
+        }
+      }
+    });
 
     await Emulation.setDeviceMetricsOverride({
       mobile: false,
@@ -120,6 +146,7 @@ async function screenshot(url, fullscreen) {
     console.error(error);
   }
 
+  clientIsAvailable = false;
   chrome.kill();
   await client.close();
 
@@ -128,10 +155,12 @@ async function screenshot(url, fullscreen) {
 
 module.exports.handler = async function handler(event, context, callback) {
   const queryStringParameters = event.queryStringParameters || {};
-  const {
-    url = "https://google.com",
-    fullscreen = "false"
-  } = queryStringParameters;
+  const { url = "https://www.mozilla.org", fullscreen = "false" } =
+    queryStringParameters;
+
+  if (!(await urlAllowed(url))) {
+    return callback(null, { statusCode: 403, body: "forbidden" });
+  }
 
   let data;
 

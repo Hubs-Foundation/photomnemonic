@@ -2,7 +2,7 @@ service: photomnemonic
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs14.x
   stackName: photomnemonic-${opt:stage, 'dev'}
   stage: ${opt:stage, 'dev'}
   region: ${file(config.json):photomnemonic-region}
@@ -15,15 +15,16 @@ provider:
       - ${file(config.json):photomnemonic-security-group}
     subnetIds: ${file(config.json):photomnemonic-subnet-ids}
   endpointType: private
-  resourcePolicy:
-    - Effect: Allow
-      Principal: "*"
-      Action: execute-api:Invoke
-      Resource:
-        - execute-api:/*/*/*
-      Condition:
-        StringEquals:
-          aws:sourceVpc: ${file(config.json):photomnemonic-vpc-id}
+  apiGateway:
+    resourcePolicy:
+      - Effect: Allow
+        Principal: "*"
+        Action: execute-api:Invoke
+        Resource:
+          - execute-api:/*/*/*
+        Condition:
+          StringEquals:
+            aws:sourceVpc: ${file(config.json):photomnemonic-vpc-id}
 
 functions:
   app:

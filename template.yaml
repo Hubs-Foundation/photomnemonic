@@ -24,7 +24,7 @@ Resources:
     Properties:
       CodeUri: photomnemonic.zip
       Handler: index.handler
-      Runtime: nodejs10.x
+      Runtime: nodejs14.x
       Timeout: 30
       MemorySize: 3000
       Role:
