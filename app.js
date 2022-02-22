@@ -16,6 +16,9 @@ app.get('/screenshot', function (req, res) {
         null,
         async function (something, callback){
             console.log("callback: ", callback)
+            if (callback.isBase64Encoded) {
+                callback.body = Buffer.from(callback.body, 'base64')
+            }
             res.status(callback.statusCode).header(callback.headers).send(callback.body)
         }
     )
