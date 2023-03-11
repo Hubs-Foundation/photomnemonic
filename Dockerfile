@@ -10,5 +10,5 @@ RUN npm install
 RUN npm install express
 
 COPY app.js index.js url-utils.js /app/
-user nobody
+# user nobody
 CMD AWS_LAMBDA_FUNCTION_NAME="something" node app.js
