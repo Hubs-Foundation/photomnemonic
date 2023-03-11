@@ -1,4 +1,4 @@
-const chromium = require("chrome-aws-lambda");
+const chromium = require("@sparticuz/chromium");
 const Cdp = require("chrome-remote-interface");
 const { spawn } = require("child_process");
 
