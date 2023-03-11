@@ -1,4 +1,6 @@
-const chromium = require("chrome-aws-lambda");
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
+
 const Cdp = require("chrome-remote-interface");
 const { spawn } = require("child_process");
 
@@ -23,8 +25,39 @@ async function screenshot(url, fullscreen) {
     "--window-size=1280x720",
     "--hide-scrollbars"
   ]);
+/////////////////////////////////////////////////////////
+const browser = await puppeteer.launch({
+  args: options,
+  defaultViewport: chromium.defaultViewport,
+  executablePath: await chromium.executablePath(),
+  headless: chromium.headless,
+  ignoreHTTPSErrors: true,
+});
 
-  const path = await chromium.executablePath;
+const page = await browser.newPage();
+
+await page.goto(url);
+const pageTitle = await page.title();
+console.log("pageTitle: ",pageTitle)
+
+for (let i = 0; i < 20; i++) {
+  try{
+    const data = await page.screenshot();    
+    return {data,meta};
+  }
+  catch (e){
+    console.log(e)
+  } 
+  await sleep(500)   
+  }
+
+console.log("fffffffffffffffffffffffffffffff")
+return
+
+//////////////////////////////////////////////////////
+
+  const path = await chromium.executablePath();
+
   const chrome = spawn(path, options);
   chrome.stdout.on("data", data => console.log(data.toString()));
   chrome.stderr.on("data", data => console.log(data.toString()));

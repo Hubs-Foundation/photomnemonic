@@ -9,9 +9,8 @@
   },
   "license": "MPL",
   "dependencies": {
-    "chrome-aws-lambda": "^9.1.0",
-    "chrome-remote-interface": "^0.31.1",
-    "puppeteer-core": "^9.1.1"
+    "chrome-remote-interface": "^0.32.1",
+    "puppeteer-core": "^19.7.4"
   },
   "devDependencies": {
     "ava": "^4.0.1",
