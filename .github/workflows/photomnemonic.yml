@@ -7,9 +7,10 @@ on:
 
 jobs:
   turkeyGitops:
-    uses: mozilla/hubs-ops/.github/workflows/turkeyGitops.yml@master
+    uses: mozilla/hubs-ops/.github/workflows/turkeyGitops.yml@feature/gitops+push_gcr
     with:
       registry: mozillareality
-      # dockerfile: Dockerfile
+      push_gcr: true
     secrets:
       DOCKER_HUB_PWD: ${{ secrets.DOCKER_HUB_PWD }}
+      GCP_TURKEYGITOPS_SA_JSON: ${{ secrets.GCP_TURKEYGITOPS_SA_JSON  }}
