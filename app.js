@@ -2,33 +2,25 @@ const lambda = require("./index");
 var express = require('express');
 const utils = require('./utils')
 
-console.log = (function() {
-  var console_log = console.log;
-  var timeStart = new Date().getTime();
-  
-  return function() {
-    var delta = new Date().getTime() - timeStart;
-    var args = [];
-    args.push((delta / 1000).toFixed(2) + ':');
-    for(var i = 0; i < arguments.length; i++) {
-      args.push(arguments[i]);
-    }
-    console_log.apply(console, args);
-  };
-})();
-
 
 async function main() {
-  console.log("starting")
-  await utils.initBrowser()
-  console.log("browser: ", utils.GetBrowser())
-  console.log("ready")
-  serve()
+  console.log("hello")
+  await utils.MakeBrowser()
+  const browser= await utils.GetBrowser()
+  console.log("browser version: ", await browser.version())
+  
+  // const test=async () => {
+  //   await new Promise(r => setTimeout(r, 5555));
+  //   browser.disconnect();
+  // }
+  // test()
+
+  serve(5000)
 }
 
 
 
-function serve(){
+function serve(port=5000){
   var app = express();
   app.get('/_healthz', function (req, res) {
     res.send('1');
@@ -40,7 +32,7 @@ function serve(){
         {queryStringParameters: req.query}, 
         null,
         async function (something, callback){
-            console.log("callback: ", callback)
+            console.log("callback.body.length: ", callback.body.length)
             if (callback.isBase64Encoded) {
                 callback.body = Buffer.from(callback.body, 'base64')
             }
@@ -48,8 +40,8 @@ function serve(){
         }
     )
   });
-  app.listen(5000, function () {
-    console.log('listening on :5000');
+  app.listen(port, function () {
+    console.log('listening on : ',port);
   });
 }
 

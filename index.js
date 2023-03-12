@@ -8,6 +8,7 @@ async function screenshot(url) {
   let data, meta;
   let loaded = false;
 
+  t0 = new Date().getTime()
   const loading = async (startTime = Date.now()) => {
     if (!loaded && Date.now() - startTime < 12 * 1000) {
       await sleep(100);
@@ -15,18 +16,18 @@ async function screenshot(url) {
     }
   };
 
-  const browser = GetBrowser()
-  console.log("browser: ", browser)
+  const browser = await GetBrowser()
 
   const page = await browser.newPage();
 
   await page.goto(url);
   const pageTitle = await page.title();
-  console.log("pageTitle: ",pageTitle)
+  console.log( "pageTitle: ",pageTitle, ", took: ", new Date().getTime()-t0, "ms")
 
   for (let i = 0; i < 20; i++) {
     try{
-      const data = await page.screenshot();    
+      data = await page.screenshot({ encoding: "base64" });
+      console.log( "screenshot took: ", new Date().getTime()-t0, "ms")
       return {data,meta};
     }
     catch (e){
