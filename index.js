@@ -1,16 +1,10 @@
-const puppeteer = require("puppeteer-core");
-const chromium = require("@sparticuz/chromium");
-
-const Cdp = require("chrome-remote-interface");
-const { spawn } = require("child_process");
-
-const { urlAllowed } = require("./url-utils");
+const { urlAllowed, GetBrowser } = require("./utils");
 
 function sleep(miliseconds = 100) {
   return new Promise(resolve => setTimeout(resolve, miliseconds));
 }
 
-async function screenshot(url, fullscreen) {
+async function screenshot(url) {
   let data, meta;
   let loaded = false;
 
@@ -20,175 +14,34 @@ async function screenshot(url, fullscreen) {
       await loading(startTime);
     }
   };
-  const options = chromium.args.concat([
-    "--remote-debugging-port=9222",
-    "--window-size=1280x720",
-    "--hide-scrollbars"
-  ]);
-/////////////////////////////////////////////////////////
-const browser = await puppeteer.launch({
-  args: options,
-  defaultViewport: chromium.defaultViewport,
-  executablePath: await chromium.executablePath(),
-  headless: chromium.headless,
-  ignoreHTTPSErrors: true,
-});
 
-const page = await browser.newPage();
+  const browser = GetBrowser()
+  console.log("browser: ", browser)
 
-await page.goto(url);
-const pageTitle = await page.title();
-console.log("pageTitle: ",pageTitle)
+  const page = await browser.newPage();
 
-for (let i = 0; i < 20; i++) {
-  try{
-    const data = await page.screenshot();    
-    return {data,meta};
-  }
-  catch (e){
-    console.log(e)
-  } 
-  await sleep(500)   
-  }
-
-console.log("fffffffffffffffffffffffffffffff")
-return
-
-//////////////////////////////////////////////////////
-
-  const path = await chromium.executablePath();
-
-  const chrome = spawn(path, options);
-  chrome.stdout.on("data", data => console.log(data.toString()));
-  chrome.stderr.on("data", data => console.log(data.toString()));
-
-  let client;
-  let clientIsAvailable = false;
+  await page.goto(url);
+  const pageTitle = await page.title();
+  console.log("pageTitle: ",pageTitle)
 
   for (let i = 0; i < 20; i++) {
-    try {
-      client = await Cdp();
-      if (client) {
-        clientIsAvailable = true;
-        break;
-      } else {
-        await sleep(100);
-      }
-    } catch (e) {
-      console.log(e);
-      await sleep(500);
+    try{
+      const data = await page.screenshot();    
+      return {data,meta};
     }
-  }
-
-  const { Network, Page, Runtime, Emulation, Fetch } = client;
-
-  try {
-    await Promise.all([Network.enable(), Page.enable(), Fetch.enable()]);
-
-    // This uses the request interception API to reject or allow requests
-    // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
-    Fetch.requestPaused(async event => {
-      if (await urlAllowed(event.request.url)) {
-        if (clientIsAvailable) {
-          Fetch.continueRequest({ requestId: event.requestId });
-        }
-      } else {
-        if (clientIsAvailable) {
-          Fetch.failRequest({
-            requestId: event.requestId,
-            errorReason: "AccessDenied"
-          });
-        }
-      }
-    });
-
-    await Emulation.setDeviceMetricsOverride({
-      mobile: false,
-      deviceScaleFactor: 0,
-      scale: 1,
-      width: 1280,
-      height: 0
-    });
-
-    await Page.loadEventFired(() => {
-      loaded = true;
-    });
-    await Page.navigate({ url });
-    await loading();
-
-    let height = 720;
-
-    if (fullscreen) {
-      const result = await Runtime.evaluate({
-        expression: `(
-          () => ({ height: document.body.scrollHeight })
-        )();
-        `,
-        returnByValue: true
-      });
-
-      height = result.result.value.height;
+    catch (e){
+      console.log(e)
+    } 
+    await sleep(500)   
     }
 
-    await Emulation.setDeviceMetricsOverride({
-      mobile: false,
-      deviceScaleFactor: 0,
-      scale: 1,
-      width: 1280,
-      height: height
-    });
-
-    // Look for a global function _photomnemonicReady and if it exists, wait until it returns true.
-    await Runtime.evaluate({
-      expression: `new Promise(resolve => {
-        if (window._photomnemonicReady) {
-          if (window._photomnemonicReady()) {
-            resolve();
-          } else {
-            const interval = setInterval(() => {
-              if (window._photomnemonicReady()) {
-                clearInterval(interval);
-                resolve();
-              }
-            }, 250)
-          }
-        } else {
-          resolve();
-        }
-      })`,
-      awaitPromise: true
-    });
-
-    const metaResult = await Runtime.evaluate({
-      expression: `window._photomnemonicGetMeta ? window._photomnemonicGetMeta() : null`,
-      returnByValue: true
-    });
-
-    if (metaResult.result.value) {
-      meta = metaResult.result.value;
-    }
-
-    await Emulation.setVisibleSize({
-      width: meta && meta.width ? meta.width : 1280,
-      height: meta && meta.height ? meta.height : height
-    });
-
-    const screenshot = await Page.captureScreenshot({ format: "png" });
-    data = screenshot.data;
-  } catch (error) {
-    console.error(error);
-  }
-
-  clientIsAvailable = false;
-  chrome.kill();
-  await client.close();
-
-  return { data, meta };
+  console.log("fffffffffffffffffffffffffffffff")
+  return
 }
 
 module.exports.handler = async function handler(event, context, callback) {
   const queryStringParameters = event.queryStringParameters || {};
-  const { url = "https://www.mozilla.org", fullscreen = "false" } =
+  const { url = "https://www.mozilla.org"} =
     queryStringParameters;
 
   if (!(await urlAllowed(url))) {
@@ -202,7 +55,7 @@ module.exports.handler = async function handler(event, context, callback) {
   };
 
   try {
-    const result = await screenshot(url, fullscreen === "true");
+    const result = await screenshot(url);
     data = result.data;
 
     if (result.meta) {
