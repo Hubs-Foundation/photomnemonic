@@ -59,7 +59,9 @@ async function MakeBrowser(){
       args: chromium.args.concat([
         "--remote-debugging-port=9222",
         "--window-size=1280x720",
-        "--hide-scrollbars"
+        "--hide-scrollbars",
+        "--disable-extensions",
+        "--disable-file-system"
       ]),
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
