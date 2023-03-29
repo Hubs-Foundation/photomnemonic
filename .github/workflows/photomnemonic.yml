@@ -10,7 +10,7 @@ env:
 
 jobs:
   turkeyGitops:
-    uses: mozilla/hubs-ops/.github/workflows/turkeyGitops.yml@master
+    uses: mozilla/hubs-ops/.github/workflows/turkeyGitops.yml@@feature/gitops+push_gcr
     with:
       registry: mozillareality
       push_gcr: true
