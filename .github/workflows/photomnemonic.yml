@@ -17,15 +17,6 @@ jobs:
       # dockerfile: Dockerfile
     secrets:
       DOCKER_HUB_PWD: ${{ secrets.DOCKER_HUB_PWD }}
+      GCP_TURKEYGITOPS_SA_JSON: ${{ secrets.GCP_TURKEYGITOPS_SA_JSON }}
 
-  push_gcr:
-    runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
-    steps: 
-      - run: |
-          echo "${{ secrets.GCP_HUBS_DEV_SA_JSON_b64 }}" | base64 -d > gcpsakey.json
-          gcrtag="gcr.io/hubs-dev-333333/$containerName:${GITHUB_RUN_NUMBER}"
-          echo "[info] gcrtag= $gcrtag"          
-          gcloud auth activate-service-account hubs-dev-sa@hubs-dev-333333.iam.gserviceaccount.com --key-file=gcpsakey.json
-          gcloud auth configure-docker -q gcr.io
-          docker tag $tag $gcrtag && docker push $gcrtag
+
