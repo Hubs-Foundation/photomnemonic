@@ -3,7 +3,7 @@ const { BlockList } = require("net");
 
 const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
-
+const fs = require('fs');
 
 //////////////////////////////////////////////////
 // url utils
