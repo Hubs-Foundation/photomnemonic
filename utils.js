@@ -51,6 +51,15 @@ async function urlAllowed(urlStr) {
 
 let _browser=null
 async function MakeBrowser(){
+
+  fs.writeFileSync('/etc/opt/chrome/policies/policy.json', `
+{
+  "URLBlocklist": [
+      "tanfarming.com",
+      "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts*"
+  ]
+}`);
+
   const launch_browser=async()=>{
     t0 = new Date().getTime()
     console.log("MakeBrowser -- launching")
