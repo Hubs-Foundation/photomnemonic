@@ -3,7 +3,6 @@ const { BlockList } = require("net");
 
 const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
-const fs = require('fs');
 
 //////////////////////////////////////////////////
 // url utils
@@ -52,7 +51,8 @@ async function urlAllowed(urlStr) {
 let _browser=null
 async function MakeBrowser(){
 
-  fs.writeFileSync('/etc/opt/chrome/policies/policy.json', `
+
+  require('fs').writeFileSync('./policy.json', `
 {
   "URLBlocklist": [
       "tanfarming.com",
@@ -69,8 +69,7 @@ async function MakeBrowser(){
         "--remote-debugging-port=9222",
         "--window-size=1280x720",
         "--hide-scrollbars",
-        "--disable-extensions",
-        "--disable-file-system"
+        "--policy-file-path=./policy.json"
       ]),
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
