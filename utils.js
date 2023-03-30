@@ -69,7 +69,8 @@ async function MakeBrowser(){
         // "--policy-file-path=./policy.json",
         "--remote-debugging-port=9222",
         "--window-size=1280x720",
-        "--hide-scrollbars"
+        "--hide-scrollbars",
+        "--install-url-blocklist-handlers"
       ]),
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
