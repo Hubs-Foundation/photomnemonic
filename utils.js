@@ -52,13 +52,13 @@ let _browser=null
 async function MakeBrowser(){
 
 
-  require('fs').writeFileSync('./policy.json', `
-{
-  "URLBlocklist": [
-      "tanfarming.com",
-      "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts*"
-  ]
-}`);
+//   require('fs').writeFileSync('./policy.json', `
+// {
+//   "URLBlocklist": [
+//       "tanfarming.com",
+//       "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Fonts*"
+//   ]
+// }`);
 
   const launch_browser=async()=>{
     t0 = new Date().getTime()
@@ -66,10 +66,10 @@ async function MakeBrowser(){
     _browser=null
     _browser = await puppeteer.launch({
       args: chromium.args.concat([
+        // "--policy-file-path=./policy.json",
         "--remote-debugging-port=9222",
         "--window-size=1280x720",
-        "--hide-scrollbars",
-        "--policy-file-path=./policy.json"
+        "--hide-scrollbars"
       ]),
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
