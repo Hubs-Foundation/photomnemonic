@@ -9,6 +9,7 @@
   },
   "license": "MPL",
   "dependencies": {
+    "@sparticuz/chromium": "^112.0.2",
     "chrome-remote-interface": "^0.32.1",
     "puppeteer-core": "^19.7.4"
   },
