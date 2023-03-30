@@ -5,8 +5,7 @@ const utils = require('./utils')
 
 async function main() {
   console.log("hello")
-  await utils.MakeBrowser()
-  const browser= await utils.WaitBrowser()
+  const browser= await utils.GetBrowser()
   console.log("browser version: ", await browser.version())
   
   // const test=async () => {

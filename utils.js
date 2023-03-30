@@ -82,7 +82,7 @@ async function WaitBrowser(){
     console.log("GetBrowser -- waiting for browser, current: ", _browser)
     await new Promise(r => setTimeout(r, 100));
   }
-  return _browser
+  return
 }
 
 async function GetBrowser(){
