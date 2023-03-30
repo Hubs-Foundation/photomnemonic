@@ -59,7 +59,8 @@ async function MakeBrowser(){
       args: chromium.args.concat([
         "--remote-debugging-port=9222",
         "--window-size=1280x720",
-        "--hide-scrollbars"
+        "--hide-scrollbars",
+        "--single-process"
       ]),
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
@@ -90,10 +91,17 @@ async function GetBrowser(){
     await MakeBrowser()
     await WaitBrowser()
   }
+  console.log("browser version: ", await _browser.version())
   return _browser
 }
 
-module.exports = { urlAllowed, MakeBrowser, WaitBrowser, GetBrowser };
+async function CloseBrowser(){
+  _browser.removeAllListeners('disconnected')
+  if(_browser) await _browser.close();
+  if (_browser.process() != null) _browser.process().kill('SIGINT');
+}
+
+module.exports = { urlAllowed, MakeBrowser, WaitBrowser, GetBrowser,CloseBrowser };
 
 //////////////////////////////////////////////////
 // misc.

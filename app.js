@@ -6,7 +6,6 @@ const utils = require('./utils')
 async function main() {
   console.log("hello")
   const browser= await utils.GetBrowser()
-  console.log("browser version: ", await browser.version())
   
   // const test=async () => {
   //   await new Promise(r => setTimeout(r, 5555));
@@ -31,7 +30,7 @@ function serve(port=5000){
         {queryStringParameters: req.query}, 
         null,
         async function (something, callback){
-            console.log("callback.body.length: ", callback.body.length)
+            // console.log("callback.body.length: ", callback.body.length)
             if (callback.isBase64Encoded) {
                 callback.body = Buffer.from(callback.body, 'base64')
             }
