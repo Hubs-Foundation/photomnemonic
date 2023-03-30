@@ -54,7 +54,7 @@ async function MakeBrowser(){
   const launch_browser=async()=>{
     t0 = new Date().getTime()
     console.log("MakeBrowser -- launching")
-    _browser=null
+    _browser = null
     _browser = await puppeteer.launch({
       args: chromium.args.concat([
         "--remote-debugging-port=9222",
@@ -77,7 +77,7 @@ async function MakeBrowser(){
   });
 }
 
-async function GetBrowser(){
+async function WaitBrowser(){
   while (!_browser){
     console.log("GetBrowser -- waiting for browser, current: ", _browser)
     await new Promise(r => setTimeout(r, 100));
@@ -85,8 +85,15 @@ async function GetBrowser(){
   return _browser
 }
 
+async function GetBrowser(){
+  if (!_browser){
+    await MakeBrowser()
+    await WaitBrowser()
+  }
+  return _browser
+}
 
-module.exports = { urlAllowed, MakeBrowser, GetBrowser };
+module.exports = { urlAllowed, MakeBrowser, WaitBrowser, GetBrowser };
 
 //////////////////////////////////////////////////
 // misc.
