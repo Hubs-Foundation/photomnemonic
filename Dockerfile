@@ -11,4 +11,4 @@ RUN npm install express
 
 COPY app.js index.js utils.js /app/
 # user nobody
-CMD AWS_LAMBDA_FUNCTION_NAME="something" node app.js
+CMD AWS_LAMBDA_FUNCTION_NAME="turkey" node app.js

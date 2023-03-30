@@ -54,12 +54,13 @@ async function MakeBrowser(){
   const launch_browser=async()=>{
     t0 = new Date().getTime()
     console.log("MakeBrowser -- launching")
-    _browser=null
+    _browser = null
     _browser = await puppeteer.launch({
       args: chromium.args.concat([
         "--remote-debugging-port=9222",
         "--window-size=1280x720",
-        "--hide-scrollbars"
+        "--hide-scrollbars",
+        "--single-process"
       ]),
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
@@ -77,16 +78,30 @@ async function MakeBrowser(){
   });
 }
 
-async function GetBrowser(){
+async function WaitBrowser(){
   while (!_browser){
     console.log("GetBrowser -- waiting for browser, current: ", _browser)
     await new Promise(r => setTimeout(r, 100));
   }
+  return
+}
+
+async function GetBrowser(){
+  if (!_browser){
+    await MakeBrowser()
+    await WaitBrowser()
+  }
+  console.log("browser version: ", await _browser.version())
   return _browser
 }
 
+async function CloseBrowser(){
+  _browser.removeAllListeners('disconnected')
+  if(_browser) await _browser.close();
+  if (_browser.process() != null) _browser.process().kill('SIGINT');
+}
 
-module.exports = { urlAllowed, MakeBrowser, GetBrowser };
+module.exports = { urlAllowed, MakeBrowser, WaitBrowser, GetBrowser,CloseBrowser };
 
 //////////////////////////////////////////////////
 // misc.
