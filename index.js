@@ -65,7 +65,7 @@ module.exports.handler = async function handler(event, context, callback) {
 
   try {
     const result = await screenshot(url);
-    console.log( "screenshot(url) took: ", new Date().getTime()-t0, "ms")
+    // console.log( "screenshot(url) took: ", new Date().getTime()-t0, "ms")
     
     data = result.data;
     console.log( "data.length: ", data.length)
