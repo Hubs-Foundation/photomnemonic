@@ -1,14 +1,14 @@
 # FROM node:lts-alpine
-FROM node:lts-buster
+FROM node:18
 WORKDIR /app
 
-RUN apt-get update && apt-get -y install libnss3 libexpat1
+RUN apt-get update && apt-get -y install libnss3 libexpat1 chromium
 
 COPY package.json package-lock.json /app/
 run npm i @sparticuz/chromium
 RUN npm install
 RUN npm install express
 
-COPY app.js index.js utils.js /app/
+COPY run.sh app.js index.js utils.js /app/
 # user nobody
-CMD AWS_LAMBDA_FUNCTION_NAME="turkey" node app.js
+CMD ln -sf /usr/bin/chromium /tmp/chromium && AWS_LAMBDA_FUNCTION_NAME="turkey" node app.js
