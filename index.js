@@ -77,7 +77,7 @@ module.exports.handler = async function handler(event, context, callback) {
     return callback(error);
   }
 
-  if (process.env.AWS_LAMBDA_FUNCTION_NAME != "turkey"){
+  if (process.env.AWS_LAMBDA_FUNCTION_NAME != "turkey") {
     CloseBrowser()
   }
 
