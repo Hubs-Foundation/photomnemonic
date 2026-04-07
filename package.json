@@ -7,6 +7,10 @@
   "scripts": {
     "test": "ava"
   },
+  "engines": {
+    "node": "24",
+    "npm": "11"
+  },
   "license": "MPL",
   "dependencies": {
     "@sparticuz/chromium": "^112.0.2",
