@@ -5,7 +5,8 @@
   "description": "Take visual snapshots of the web at a point in time",
   "main": "index.js",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "build": "docker build . -f Dockerfile -t \"$REGISTRY_NAMESPACE/photomnemonic:$(git branch --show-current)-$(date -u +'%Y-%m-%d-%H-%M')\""
   },
   "license": "MPL",
   "dependencies": {
