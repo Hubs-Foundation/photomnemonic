@@ -1,4 +1,4 @@
-FROM node:lts-bullseye
+FROM node:lts-bookworm
 WORKDIR /app
 
 RUN apt-get update && apt-get -y install libnss3 libexpat1
