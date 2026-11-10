@@ -56,16 +56,23 @@ async function MakeBrowser(){
     console.log("MakeBrowser -- launching")
     _browser = null
     _browser = await puppeteer.launch({
-      args: chromium.args.concat([
+      args: chromium.default.args.concat([
         "--remote-debugging-port=9222",
         "--window-size=1280x720",
         "--hide-scrollbars",
         "--single-process"
       ]),
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
+      defaultViewport: {
+        deviceScaleFactor: 1,
+        hasTouch: false,
+        height: 1080,
+        isLandscape: true,
+        isMobile: false,
+        width: 1920,
+      },
+      executablePath: await chromium.default.executablePath(),
+      headless: "shell",
+      acceptInsecureCerts: true,
     });
     console.log("MakeBrowser -- ready, took: ", new Date().getTime()-t0, "ms")
   }
